@@ -1,0 +1,258 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>숫자야구</title>
+    <style>
+        #field{
+            position: absolute;
+            top:0px;
+            left: 200px;
+            height:700px;
+            width:700px;
+            border-radius: 1% 100% 1% 1%;
+            background-color: rgb(134, 209, 23);
+            -webkit-transform: rotate(-45deg);
+        }
+        .base{
+            position: absolute;
+            height: 20px;
+            width: 20px;
+            background-color: white;
+            -webkit-transform: rotate(-45deg);
+        }
+        #first{
+            top:560px;
+            left:760px;
+        }
+        #second{
+            top:380px;
+            left:550px;
+        }
+        #third{
+            top:560px;
+            left:320px
+        }
+        #home{
+            top:780px;
+            left:540px;
+        }
+        .player{
+            background-color: brown;
+        }
+        .first-hit {
+            background-color: brown; /* 1루타일 때 색상 */
+        }
+        .second-hit {
+            background-color: brown; /* 2루타일 때 색상 */
+        }
+        .third-hit {
+            background-color: brown; /* 3루타일 때 색상 */
+        }
+    </style>
+</head>
+<body>
+    <div>
+        <form id="form">
+            <input type="text" id="input">
+            <button>확인</button>
+        </form>
+        <button id="button1">1루 진출</button>
+        <button id="button0">1루 취소</button>
+        <div id="logs"></div>
+    </div>
+    <div id="field"></div>
+    <div id="first" class="base"></div>
+    <div id="second" class="base"></div>
+    <div id="third" class="base"></div>
+    <div id="home" class="base"></div>
+
+    <script>
+        const $first = document.querySelector('#first');
+        const $second = document.querySelector('#second');
+        const $third = document.querySelector('#third');
+        const $home = document.querySelector('#home');
+        const $button1 = document.querySelector("#button1");
+        const $button0 = document.querySelector("#button0");
+        const $logs = document.querySelector('#logs');
+        const $input = document.querySelector('#input');
+        
+        
+        let playerPosition = 0; // 주자의 초기 위치
+        
+        $button1.addEventListener("click", () => {
+            movePlayerForward();
+        });
+
+        function movePlayerForward() {
+            if (playerPosition < 4) {
+                playerPosition++;
+                controlPlayerPosition();
+                console.log(playerPosition);
+                //console.log(playerPosition);
+                setTimeout(() => {
+                    resetBaseColors();
+                }, 3000);
+            } 
+        }
+        function resetBaseColors() {
+        // 모든 베이스의 색상을 흰색으로 변경
+        $first.classList.remove("first-hit");
+        $second.classList.remove("second-hit");
+        $third.classList.remove("third-hit");
+        $home.classList.remove("player");
+        }
+
+        $button0.addEventListener("click", () => {
+            movePlayerBackward();
+        });
+        
+        function movePlayerBackward() {
+            if (playerPosition > 0) {
+                playerPosition--;
+                controlPlayerPosition();
+                console.log(playerPosition);
+            }
+        }
+
+        function controlPlayerPosition() {
+            if (playerPosition === 0) {
+                $first.classList.remove("player", "first-hit");
+                $second.classList.remove("second-hit");
+                $third.classList.remove("third-hit");
+            } else if (playerPosition === 1) {
+                $first.classList.add("player", "first-hit");
+                $second.classList.remove("second-hit");
+                $third.classList.remove("third-hit");
+            } else if (playerPosition === 2) {
+                $first.classList.remove("player", "first-hit");
+                $second.classList.add("player", "second-hit");
+                $third.classList.remove("third-hit");
+            } else if (playerPosition === 3) {
+                $first.classList.remove("player", "first-hit");
+                $second.classList.remove("player", "second-hit");
+                $third.classList.add("player", "third-hit");
+            } else if (playerPosition === 4) {
+                $first.classList.remove("player", "first-hit");
+                $second.classList.remove("player", "second-hit");
+                $third.classList.remove("player", "third-hit");
+                $home.classList.add("player");
+            }
+        }
+
+
+
+
+        const numbers = [];
+        let answer = [];
+
+        function gamestart() {
+            for (let n = 1; n <= 9; n += 1) {
+                numbers.push(n);
+            }
+            for (let i = 0; i < 4; i++) {
+                let num = Math.floor(Math.random() * numbers.length);
+                answer.push(numbers[num]);
+                numbers.splice(num, 1);
+            }
+        }
+
+        gamestart();
+        console.log(answer.join(''));
+
+        const tries = [];   //입력 된 배열 값
+        let triescount = 0; //입력 횟수
+
+        //triescount++;
+        
+        function checkInput(input) {
+            if (input.length !== 4) {
+                alert('4자리 숫자를 입력해주세요.');
+                return false;
+            }
+            if (new Set(input).size !== 4) {
+                alert('중복되지 않게 입력해주세요.');
+                return false;
+            }
+            if (tries.includes(input)) {
+                alert('이미 시도한 값입니다.');
+                return false;
+            }
+            return true;
+        }
+
+        const $form = document.querySelector('#form');
+        $form.addEventListener('submit', (event) => {
+            event.preventDefault();
+
+            const value = $input.value;
+            const valid = checkInput(value);
+            if (!valid) return;
+            triescount++;
+
+            let strike = 0;
+            let ball = 0;
+
+            answer.forEach((number, aIndex) => {
+                const index = value.indexOf(String(number));
+                if (index > -1) {
+                    if (index === aIndex) {
+                        strike += 1;
+                    } else {
+                        ball += 1;
+                    }
+                    
+                }
+                $logs.textContent = (`${value}=> ${strike}스트라이크 ${ball}볼`);
+                tries.push(value);
+                
+                console.log(triescount);
+            });
+            
+            if(answer.join('')===value){
+                if(triescount===1){
+                    $logs.textContent = '홈런!!!!!!!!';
+                    $first.classList.remove("player", "first-hit");
+                    $second.classList.remove("player", "second-hit");
+                    $third.classList.remove("player", "third-hit");
+                    $home.classList.add("player");
+                    setTimeout(() => {
+                    resetBaseColors();
+                    }, 3000);
+                }else if(1<triescount&&triescount<5){
+                    $logs.textContent = '3루타!!!';
+                    $first.classList.remove("player", "first-hit");
+                    $second.classList.remove("player", "second-hit");
+                    $third.classList.add("player", "third-hit");
+                }else if(4<triescount&&triescount<8){
+                    $logs.textContent = '2루타!!!';
+                    $first.classList.remove("player", "first-hit");
+                    $second.classList.add("player", "second-hit");
+                    $third.classList.remove("third-hit");
+                }else if(7<triescount&&triescount<10){
+                    $logs.textContent = '1루타!!!';
+                    $first.classList.add("player", "first-hit");
+                    $second.classList.remove("second-hit");
+                    $third.classList.remove("third-hit");
+                }else{
+                    $logs.textContent = `아웃! 정답은 ${answer.join('')}`;
+                }
+                triescount = 0;
+            }
+            $input.value = '';
+
+            /*
+            if (strike === 4) {
+                $logs.textContent = '홈런';
+                movePlayerForward();
+                triescount = 0;
+            } else if (triescount > 10) {
+                $logs.textContent = `패배! 정답은 ${answer.join('')}`;
+                triescount = 0;
+            }*/
+
+        });
+    </script>
+</body>
+</html>
