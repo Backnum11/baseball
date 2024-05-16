@@ -1,0 +1,263 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>숫자야구</title>
+    <style>
+        #field {
+            position: absolute;
+            top: 0px;
+            left: 200px;
+            height: 700px;
+            width: 700px;
+            border-radius: 1% 100% 1% 1%;
+            background-color: rgb(134, 209, 23);
+            -webkit-transform: rotate(-45deg);
+        }
+
+        .base {
+            position: absolute;
+            height: 20px;
+            width: 20px;
+            background-color: white;
+            -webkit-transform: rotate(-45deg);
+        }
+
+        #first {
+            top: 560px;
+            left: 760px;
+        }
+
+        #second {
+            top: 380px;
+            left: 550px;
+        }
+
+        #third {
+            top: 560px;
+            left: 320px
+        }
+
+        #home {
+            top: 780px;
+            left: 540px;
+        }
+
+        .player,.player2 {
+            background-color: brown;
+        }
+
+        .first-hit, .second-hit, .third-hit {
+            background-color: brown;
+        }
+    </style>
+</head>
+<body>
+    <div>
+        <h1>숫자 야구 게임</h1>
+        <form id="form">
+            <input type="text" id="input" style="padding: 8px; border-radius: 4px; border: 1px solid #ccc;">
+            <button style="padding: 8px 16px; border-radius: 4px; background-color: #007bff; color: #fff; border: none; cursor: pointer;">확인</button>
+        </form>
+        <button id="button1">1루 진출</button>
+        <button id="button0">1루 취소</button>
+        <div id="logs"></div>
+    </div>
+    <div id="field"></div>
+    <div id="first" class="base"></div>
+    <div id="second" class="base"></div>
+    <div id="third" class="base"></div>
+    <div id="home" class="base"></div>
+
+    <script>
+        const $first = document.querySelector('#first');
+        const $second = document.querySelector('#second');
+        const $third = document.querySelector('#third');
+        const $home = document.querySelector('#home');
+        const $button1 = document.querySelector("#button1");
+        const $button0 = document.querySelector("#button0");
+        const $logs = document.querySelector('#logs');
+        const $input = document.querySelector('#input');
+
+        let playerPosition = 0; // 주자의 초기 위치
+        let triescount = 0; // 입력 횟수
+        const tries = []; // 시도된 입력값
+
+        $button1.addEventListener("click", movePlayerForward);
+        $button0.addEventListener("click", movePlayerBackward);
+
+        function movePlayerForward() {
+            if (playerPosition < 4) {
+                playerPosition++;
+                controlPlayerPosition();
+            }
+        }
+
+        function movePlayerBackward() {
+            if (playerPosition > 0) {
+                playerPosition--;
+                controlPlayerPosition();
+            }
+        }
+
+        function resetBaseColors() {
+            // 모든 베이스의 색상을 초기화
+            $first.classList.remove("player","palyer2", "first-hit");
+            $second.classList.remove("player","palyer2", "second-hit");
+            $third.classList.remove("player","palyer2", "third-hit");
+            $home.classList.remove("player","palyer2");
+        }
+
+        function controlPlayerPosition() {
+            resetBaseColors();
+            if (playerPosition === 1) {
+                $first.classList.add("player", "first-hit");
+                if(stage===2){
+                    $first.classList.add("player2", "first-hit");
+                }
+            } else if (playerPosition === 2) {
+                $second.classList.add("player", "second-hit");
+                if(stage===2){
+                    $second.classList.add("player2", "second-hit");
+                }
+            } else if (playerPosition === 3) {
+                $third.classList.add("player", "third-hit");
+                if(stage===2){
+                    $third.classList.add("player2", "third-hit");
+                }
+            } else if (playerPosition === 4) {
+                $home.classList.add("player");
+                if(playerPosition === 4&&stage===2){
+                    $home.classList.add("player2");
+                }
+                setTimeout(resetBaseColors, 1000);
+                playerPosition = 0;
+            }
+        }
+
+        const numbers = [];
+        let answer1 = [];
+        let answer2 = [];
+        let currentAnswer = [];
+        let stage = 1;
+
+        function gamestart() {
+            for (let n = 1; n <= 9; n += 1) {
+                numbers.push(n);
+            }
+            for (let i = 0; i < 4; i++) {
+                let num = Math.floor(Math.random() * numbers.length);
+                answer1.push(numbers[num]);
+                numbers.splice(num, 1);
+            }
+            for (let i = 0; i < 4; i++) {
+                let num = Math.floor(Math.random() * numbers.length);
+                answer2.push(numbers[num]);
+                numbers.splice(num, 1);
+            }
+            currentAnswer = answer1;
+        }
+
+        gamestart();
+        console.log(answer1.join(''));
+        console.log(answer2.join(''));
+
+        function checkInput(input) {
+            if (input.length !== 4) {
+                alert('4자리 숫자를 입력해주세요.');
+                return false;
+            }
+            if (new Set(input).size !== 4) {
+                alert('중복되지 않게 입력해주세요.');
+                return false;
+            }
+            if (tries.includes(input)) {
+                alert('이미 시도한 값입니다.');
+                return false;
+            }
+            return true;
+        }
+
+        const $form = document.querySelector('#form');
+        $form.addEventListener('submit', (event) => {
+            event.preventDefault();
+
+            const value = $input.value;
+            const valid = checkInput(value);
+            if (!valid) return;
+            triescount++;
+
+            let strike = 0;
+            let ball = 0;
+
+            currentAnswer.forEach((number, aIndex) => {
+                const index = value.indexOf(String(number));
+                if (index > -1) {
+                    if (index === aIndex) {
+                        strike += 1;
+                    } else {
+                        ball += 1;
+                    }
+                }
+            });
+
+            $logs.textContent = (`${value} => ${strike}스트라이크 ${ball}볼`);
+            tries.push(value);
+            console.log(triescount);
+
+            if (strike === 4) {
+                if (stage === 1) {
+                    $logs.textContent = ' - 첫 번째 문제 정답!';
+                    currentAnswer = answer2;
+                    alert('첫 번째 문제를 맞췄습니다! 이제 두 번째 문제로 넘어갑니다.');
+                    stage = 2;
+                } else {
+                    $logs.textContent = ' - 두 번째 문제 정답! 게임 클리어!';
+                    alert('두 번째 문제를 맞췄습니다! 게임을 클리어했습니다!');
+                }
+                updatePlayerPosition();
+            } else if (triescount >= 10) {
+                $logs.textContent = `회수 초과! 게임 오버! 정답은 ${currentAnswer.join('')}`;
+                alert('회수를 초과했습니다. 게임 오버!');
+            }
+
+            $input.value = '';
+        });
+
+        function updatePlayerPosition() {
+            if (triescount === 1) {                         //1
+                $logs.textContent += ' 홈런!!!!(10점)';
+                playerPosition = 4;
+            } else if (1<triescount&&triescount<5) {        //2,3,4
+                $logs.textContent += ' 3루타!!!(3점)';
+                playerPosition = 3;
+            } else if (4<triescount&&triescount<8) {        //5,6,7
+                $logs.textContent += ' 2루타!!!(2점)';
+                playerPosition = 2;
+            } else if(triescount>7) {                
+                $logs.textContent += ' 1루타!!!(1점)';
+                playerPosition = 1;
+            }
+            controlPlayerPosition();
+            triescount= 0;
+        }
+
+        
+        /*function resetGame() {
+            triescount = 0;
+            stage = 1;
+            answer1 = [];
+            answer2 = [];
+            numbers.length = 0;
+            gamestart();
+            currentAnswer = answer1;
+            resetBaseColors();
+            playerPosition = 0;
+            tries.length = 0;
+            console.log(answer1.join(''));
+            console.log(answer2.join(''));
+        }*/
+    </script>
+</body>
+</html>
